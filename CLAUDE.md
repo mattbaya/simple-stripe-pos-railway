@@ -1,153 +1,175 @@
-# 🏪 Community POS System - Project Context
+# 🚂 Railway POS System - Deployment Status & Configuration
 
-## 📋 Overview
+## 📋 Current Status
 
-This is a **Flask-based point-of-sale system** for community organizations that enables in-person payment processing for donations and memberships using Stripe Terminal hardware. 
+**Railway Project Created:** ✅  
+**Project Name:** simple-stripe-pos-railway  
+**Service Name:** jubilant-healing  
+**Live URL:** https://jubilant-healing-production.up.railway.app  
+**GitHub Repo:** https://github.com/mattbaya/simple-stripe-pos-railway  
 
-### Key Features:
-- ✅ Optional fee coverage allowing users to cover Stripe processing fees (2.9% + $0.30)
-- ✅ Transparent cost breakdown
-- ✅ Professional success modal with organization branding
-- ✅ Automatic email receipt system
+## ✅ Status Update - FIXED!
 
-## 🛠️ Technology Stack
+### Environment Variables Restored
+- **Status:** All environment variables set via Railway CLI
+- **Build:** Successful (using Nixpacks)  
+- **Deploy:** Healthy - app responding on /health endpoint
+- **Environment Variables:** All 15 variables restored via `railway variables --set`
 
-| Component | Technology |
-|-----------|-----------|
-| **Backend** | Python Flask web application |
-| **Payment Processing** | Stripe Terminal API (v8.11.0) with S700 card reader |
-| **Email** | OAuth2-authenticated Gmail API for receipts and notifications |
-| **Deployment** | Railway.app platform-as-a-service with automatic SSL |
-| **Frontend** | Bootstrap-based web interface with JavaScript |
-| **Fee Calculation** | Real-time Stripe fee calculations with optional coverage |
-| **SSL** | Automatic HTTPS via Railway platform |
+### Environment Variables Status
+**Set in Railway:** ✅ All 15 environment variables set via Railway CLI
+- Stripe API keys (secret, publishable, location ID)
+- Email configuration (from/notification emails)
+- Organization branding (name, logo, website)
+- Google OAuth credentials (client ID, secret, refresh token)
+- Membership pricing (individual/household amounts)
+- Flask environment and domain settings
 
-## Key Files
-- `app/main.py` - Main Flask application with payment processing logic
-- `templates/index.html` - Web interface for payment collection
-- `templates/donor_acknowledgment_email.html` - Professional HTML email template for donation receipts
-- `templates/donor_acknowledgment_email_template.html` - Generic template for other organizations
-- `donor-ack.txt` - Source text for donation acknowledgment emails
-- `docker-compose.yml` - Development container orchestration
-- `docker-compose.prod.yml` - Production setup with Caddy SSL proxy
-- `Caddyfile` - Caddy configuration for SSL and reverse proxy
-- `requirements.txt` - Python dependencies
-- `generate_oauth_token.py` - OAuth2 setup utility
+**Problem:** Environment variables not being loaded by Flask app despite being set in Railway
 
-## Environment Configuration
-The application requires these environment variables:
-- `STRIPE_SECRET_KEY` - Stripe API key
-- `STRIPE_LOCATION_ID` - Terminal location ID  
-- `INDIVIDUAL_MEMBERSHIP_AMOUNT` - Individual membership price (cents, default: 3500)
-- `HOUSEHOLD_MEMBERSHIP_AMOUNT` - Household membership price (cents, default: 5000)
-- `ORGANIZATION_NAME/LOGO/WEBSITE` - Branding configuration
-- `DOMAIN_NAME` - Primary domain (pos.yourdomain.org)
-- `NOTIFICATION_EMAIL` - Organization notification recipient
-- `GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN` - OAuth2 credentials
-- `FROM_EMAIL` - Sender email address
+### Observed Railway Logs
+```
+Starting Container
+[2025-08-10 16:46:28 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-08-10 16:46:28 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2025-08-10 16:46:28 +0000] [1] [INFO] Using worker: sync
+[2025-08-10 16:46:28 +0000] [4] [INFO] Booting worker with pid: 4
+INFO:app.main:Searching for readers in location: None
+ERROR:app.main:Error discovering readers: 'NoneType' object is not subscriptable
+ERROR:app.main:Error creating connection token: No API key provided.
+```
 
-## 🚀 Development Commands
+**Analysis:**
+- Gunicorn starting on port 8080 (should use $PORT)
+- Environment variables showing as None/missing
+- API key not being loaded by Flask process
 
+## 🛠️ Railway Configuration
+
+### Current railway.json
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "gunicorn --bind 0.0.0.0:$PORT app.main:app",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
+```
+
+### Flask App Configuration
+**Port Handling:** ✅ App uses `os.getenv('PORT', 5000)`  
+**API Key Loading:** `stripe.api_key = os.getenv('STRIPE_SECRET_KEY')`  
+**Problem:** Environment variables not reaching the Flask process
+
+## 🐛 Debugging Attempts
+
+### Railway CLI Commands Used
 ```bash
-# Local development
-pip install -r requirements.txt
-export STRIPE_SECRET_KEY=sk_test_...
-export STRIPE_LOCATION_ID=tml_...
-python app/main.py
-
-# Railway deployment
-git push  # Automatic deployment on push
-
-# Railway management
 railway login
-railway logs
+railway init --name simple-stripe-pos-railway
+railway add --service --repo mattbaya/simple-stripe-pos-railway
+railway variables --set "KEY=VALUE" # (for each variable)
 railway status
+railway logs
+railway domain  # Generated URL
 ```
 
-## Production Deployment
-- **Platform**: Railway.app handles all infrastructure automatically
-- **Domain**: Configure custom domain in Railway dashboard (optional)
-- **SSL**: Automatic HTTPS certificates provided by Railway
-- **Auto-scaling**: Automatically sleeps when inactive to minimize costs
-- **Cost**: ~$0.10/hour when active, $0/month when sleeping
+### Direct API Tests
+```bash
+curl https://jubilant-healing-production.up.railway.app/health
+# Result: Connection timeout (healthcheck failing)
 
-## 💳 Payment Flow
-
-```mermaid
-graph TD
-    A[User visits web interface] --> B[Select donation or membership type]
-    B --> C[Enter amount, name, and email]
-    C --> D[Optional: Select fee coverage]
-    D --> E[System creates Stripe PaymentIntent]
-    E --> F[Payment processed on S700 terminal]
-    F --> G[Success modal with organization branding]
-    G --> H[Email receipt sent to user]
-    H --> I[Notification email sent to organization]
-    I --> J[Transaction stored in Stripe]
+curl -X POST https://jubilant-healing-production.up.railway.app/create-connection-token  
+# Result: "No API key provided" error
 ```
 
-### Step-by-Step Process:
-1. 🖥️ User selects donation or membership (individual/household) on web interface
-2. ✍️ User enters amount (for donations), name, and **required** email address
-3. 💰 User optionally selects fee coverage (shows transparent breakdown)
-4. 🔄 System creates Stripe PaymentIntent with calculated amount
-5. 💳 Payment processed on S700 terminal hardware
-6. ✅ Success shows professional modal with organization logo and payment details
-7. 📧 Automatic HTML email receipt sent to user with embedded letterhead
-8. 📬 Organization notification email sent for tracking purposes
-9. 💾 All transaction data stored in Stripe, no local database
+## 🔍 Root Cause Analysis
 
-## API Endpoints
-- `GET /` - Main payment interface with automatic reader discovery
-- `GET /admin-readers` - Admin interface for reader management
-- `GET /health` - Health check endpoint
-- `POST /calculate-fees` - Calculate processing fees for given amount/type
-- `POST /create-payment-intent` - Create Stripe PaymentIntent with optional fees
-- `POST /register-reader` - Register new Stripe terminal (development helper)
-- `POST /discover-readers` - Find available Stripe terminals
-- `POST /process-payment` - Process payment on selected terminal
-- `GET /payment-status/<id>` - Check PaymentIntent status and send emails via Gmail API
+### Likely Issues:
+1. **Gunicorn vs Flask Startup:** Railway using gunicorn but environment variables not passed to worker processes
+2. **Port Configuration:** App starting on 8080 instead of Railway's dynamic $PORT
+3. **Build Context:** Railway might be building from wrong files or context
+4. **Environment Variable Injection:** Railway variables not reaching Flask process environment
 
-## Fee Coverage Feature
-- Calculates Stripe fees: 2.9% + $0.30 per transaction
-- Optional checkbox with real-time fee display
-- Transparent breakdown: base amount + processing fee = total
-- Payment metadata tracks fee information for reporting
-- Works for both donations and memberships
+### Evidence:
+- Build succeeds (Docker image created)
+- Healthcheck fails (app not responding)
+- Logs show gunicorn starting but environment variables as None
+- Environment variables confirmed set in Railway dashboard
 
-## User Interface Features
-- **Professional Success Modal**: Displays organization logo, animated checkmark, and payment details
-- **Required Email Validation**: HTML5 and JavaScript validation ensures email collection for receipts
-- **Automatic Reader Discovery**: Main page automatically loads and displays connected S700 reader status
-- **Responsive Design**: Bootstrap-based interface works on desktop and mobile devices
-- **Real-time Fee Calculation**: Updates total amount as user toggles fee coverage option
-- **Clear Visual Feedback**: Loading spinners, status messages, and error handling
+## 🚀 Next Steps to Fix
 
-## Hardware Setup
-- **Card Reader**: Stripe S700 Terminal (configure with your reader)
-- **Reader ID**: Configure with your terminal reader ID
-- **Status**: Check terminal status in Stripe dashboard
-- **Serial**: Your terminal's serial number
+### Option 1: Fix Gunicorn Configuration
+- Change startCommand to use proper PORT variable binding
+- Ensure gunicorn passes environment to workers
+- Test: `gunicorn --bind 0.0.0.0:$PORT --env PORT=$PORT app.main:app`
 
-## Local Configuration
-- Organization-specific files are stored in `local-config/` directory
-- This directory is gitignored to prevent committing sensitive organization data
-- Application automatically prefers local-config files when available
-- See `local-config/README.md` for setup instructions
+### Option 2: Use Direct Flask Startup
+- Change startCommand to: `python app/main.py`
+- Flask will handle PORT environment variable directly
+- Simpler for debugging environment variable issues
 
-## Security Notes
-- Environment files (.env*) are gitignored
-- Uses OAuth2 for secure Gmail authentication
-- Stripe handles all sensitive payment data
-- Automatic HTTPS with security headers via Caddy
-- Domain enforcement and HTTPS redirect
-- Organization-specific data kept in local-config directory
+### Option 3: Debug Environment Loading
+- Add logging to show what environment variables Flask sees
+- Create debug endpoint: `/debug-env`
+- Test environment variable injection
 
-## Email Receipt System
-- **Professional HTML Templates**: Uses HTML email template with organization letterhead (configurable)
-- **Embedded Images**: Organization letterhead image embedded as inline attachment for consistent display
-- **Template Variables**: Dynamic content including donor name, amount, date, and transaction details
-- **Tax Receipt Information**: Includes 501(c)(3) status, Tax ID, and IRS-compliant receipt language
-- **Fallback Support**: Graceful fallback to simple HTML email if template loading fails
-- **Gmail API Integration**: Secure OAuth2-authenticated sending via Gmail API
-- **Local-Config Support**: Automatically uses organization-specific templates from local-config when available
+### Option 4: Railway Dashboard Manual Deploy
+- Use Railway web interface instead of CLI
+- Manual redeploy to refresh environment variable injection
+- Check Railway dashboard logs directly
+
+## 📁 File Structure (Railway Version)
+```
+simple-stripe-pos-railway/
+├── app/
+│   └── main.py              # Flask app with PORT env var support
+├── templates/
+│   ├── index.html           # POS interface
+│   ├── admin_readers.html   # Reader management
+│   └── *.html               # Email templates
+├── static/
+│   └── example-logo.svg     # Assets
+├── requirements.txt         # Python dependencies
+├── railway.json             # Railway deployment config
+├── generate_oauth_token.py  # OAuth2 setup utility
+└── README.md               # Railway-specific documentation
+```
+
+## 🔐 Security Notes
+- Environment variables set securely in Railway dashboard
+- No secrets in GitHub repository
+- API keys not committed to code
+- OAuth2 tokens stored as environment variables
+
+## ✅ Working Elements
+- ✅ Railway project created
+- ✅ GitHub repository connected  
+- ✅ Environment variables set via CLI
+- ✅ Docker build succeeds
+- ✅ Flask app code has proper PORT handling
+- ✅ All dependencies in requirements.txt
+
+## ❌ Failing Elements
+- ❌ Flask app startup/healthcheck
+- ❌ Environment variable loading in Flask process
+- ❌ Stripe API key not accessible to app
+- ❌ Connection token endpoint failing
+- ❌ Reader discovery not working
+
+## 🎯 Priority Fixes
+1. **Fix environment variable loading** - Critical for Stripe integration
+2. **Fix Flask startup** - Required for basic operation  
+3. **Test Stripe Terminal connection** - Core functionality
+4. **Verify email functionality** - Receipt system
+
+---
+
+**Note:** This Railway directory contains the clean, Docker-free version optimized for Railway deployment. The parent directory contains the Docker version and should not be modified when working on Railway deployment issues.
