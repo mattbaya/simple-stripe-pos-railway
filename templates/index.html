@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ organization_name }} Payment System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-button {
+            height: 120px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            line-height: 1.3;
+            padding: 15px;
+        }
+        
+        .payment-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn-primary.payment-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary.payment-button:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+        
+        .btn-success.payment-button {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        
+        .btn-success.payment-button:hover {
+            background: linear-gradient(135deg, #0d7377 0%, #2dd4bf 100%);
+        }
+        
+        .payment-button small {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: linear-gradient(135deg, #d4f6d4 0%, #a8e6a3 100%);
+            color: #155724;
+        }
+        
+        .status-error {
+            background: linear-gradient(135deg, #fdd5d5 0%, #f8a8a8 100%);
+            color: #721c24;
+        }
+        
+        .status-processing {
+            background: linear-gradient(135deg, #fff8dc 0%, #f0e68c 100%);
+            color: #856404;
+        }
+        
+        .reader-selection {
+            margin: 20px 0;
+        }
+        
+        #loading-spinner {
+            display: none;
+        }
+        
+        .success-checkmark {
+            animation: checkmarkBounce 0.5s ease-in-out;
+        }
+        
+        @keyframes checkmarkBounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        #successModal .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        
+        #successModal .modal-body {
+            padding: 2rem;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-container img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .fee-breakdown {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid #cbd5e0;
+        }
+        
+        .btn-primary:not(.payment-button) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:not(.payment-button):hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: 600;
+        }
+        
+        .btn-outline-primary, .btn-outline-secondary {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover, .btn-outline-secondary:hover {
+            transform: translateY(-1px);
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .card-title {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-3">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="main-container">
+                <div class="logo-container">
+                    {% if organization_logo %}<img src="{{ organization_logo }}" alt="{{ organization_name }}" class="img-fluid">{% endif %}
+                </div>
+                <h1 class="text-center mb-5">{{ organization_name }} Payment System</h1>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100 payment-button" onclick="selectPaymentType('donation')">
+                            Make a Donation
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success w-100 payment-button" onclick="selectPaymentType('membership', 'individual')">
+                            Individual Membership<br><small>$35</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success w-100 payment-button" onclick="selectPaymentType('membership', 'household')">
+                            Household Membership<br><small>$50</small>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <div id="payment-form" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title" id="payment-title">Payment Details</h5>
+                            
+                            <div class="mb-3">
+                                <label for="payer-name" class="form-label">Name *</label>
+                                <input type="text" class="form-control" id="payer-name" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="payer-email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="payer-email" required>
+                            </div>
+                            
+                            <div id="donation-amount" class="mb-3" style="display: none;">
+                                <label for="amount" class="form-label">Donation Amount ($)</label>
+                                <input type="number" class="form-control" id="amount" min="1" step="0.01" placeholder="20.00" onchange="updateFeeCalculation()">
+                            </div>
+                            
+                            <!-- Fee Coverage Option -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="cover-fees" onchange="updateFeeCalculation()">
+                                    <label class="form-check-label" for="cover-fees">
+                                        <strong>Help us cover processing fees</strong>
+                                        <small class="text-muted d-block" id="fee-description">Cover the processing fee</small>
+                                    </label>
+                                </div>
+                                <div id="fee-breakdown" class="mt-3 p-4 rounded" style="display: none; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 3px solid #cbd5e0;">
+                                    <div style="font-size: 28px; line-height: 2.2; font-weight: bold;">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span>Base amount:</span>
+                                            <span class="text-primary" style="font-size: 32px;">$<span id="base-amount">0.00</span></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span>Processing fee:</span>
+                                            <span class="text-warning" style="font-size: 32px;">$<span id="fee-amount">0.00</span></span>
+                                        </div>
+                                        <hr class="my-3" style="border-top: 4px solid #6c757d;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span style="font-size: 32px;">Total:</span>
+                                            <span class="text-success" style="font-size: 40px; font-weight: 900;">$<span id="total-amount">0.00</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="reader-selection">
+                                <label class="form-label">Select Card Reader:</label>
+                                <div id="reader-list">
+                                    <div class="text-muted">No readers connected. Please use the admin interface to set up readers.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" id="process-payment-btn" onclick="processPayment()">
+                                    Process Payment
+                                </button>
+                                <button class="btn btn-secondary" onclick="resetForm()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Processing payment...</p>
+                </div>
+
+                <!-- Status Messages -->
+                <div id="status-message" style="display: none;"></div>
+                
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <!-- Organization Logo -->
+                    {% if organization_logo %}
+                    <div class="mb-3">
+                        <img src="{{ organization_logo }}" alt="{{ organization_name }}" style="max-width: 120px; height: auto;">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Success Icon -->
+                    <div class="mb-3">
+                        <div class="success-checkmark">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="12" fill="#28a745"/>
+                                <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Success Message -->
+                    <h3 class="text-success mb-3">Payment Successful!</h3>
+                    <div id="success-details" class="mb-4">
+                        <!-- Payment details will be inserted here -->
+                    </div>
+                    
+                    <p class="text-muted mb-4">
+                        {% if organization_name %}
+                        Thank you for your support of {{ organization_name }}!
+                        {% else %}
+                        Thank you for your payment!
+                        {% endif %}
+                        <br>
+                        <small>A receipt has been sent to your email address.</small>
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" onclick="resetForm()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPaymentType = null;
+        let selectedMembershipType = null;
+        let currentPaymentIntent = null;
+        let currentFeeData = null;
+
+        function selectPaymentType(type, membershipType = null) {
+            selectedPaymentType = type;
+            selectedMembershipType = membershipType;
+            document.getElementById('payment-form').style.display = 'block';
+            
+            if (type === 'donation') {
+                document.getElementById('payment-title').textContent = 'Make a Donation';
+                document.getElementById('donation-amount').style.display = 'block';
+            } else if (type === 'membership') {
+                if (membershipType === 'individual') {
+                    document.getElementById('payment-title').textContent = 'Individual Membership Payment ($35)';
+                } else if (membershipType === 'household') {
+                    document.getElementById('payment-title').textContent = 'Household Membership Payment ($50)';
+                }
+                document.getElementById('donation-amount').style.display = 'none';
+                // Calculate fees for membership immediately
+                updateFeeCalculation();
+            }
+            
+            hideStatus();
+        }
+
+        async function updateFeeCalculation() {
+            const coverFees = document.getElementById('cover-fees').checked;
+            const feeBreakdown = document.getElementById('fee-breakdown');
+            
+            if (!selectedPaymentType) {
+                feeBreakdown.style.display = 'none';
+                // Reset fee description to default
+                document.getElementById('fee-description').textContent = 'Cover the processing fee';
+                return;
+            }
+            
+            let amount = null;
+            if (selectedPaymentType === 'donation') {
+                const amountInput = document.getElementById('amount').value;
+                if (!amountInput || parseFloat(amountInput) <= 0) {
+                    feeBreakdown.style.display = 'none';
+                    // Reset fee description to default
+                    document.getElementById('fee-description').textContent = 'Cover the processing fee';
+                    return;
+                }
+                amount = parseFloat(amountInput);
+            }
+            
+            try {
+                const response = await fetch('/calculate-fees', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_type: selectedPaymentType,
+                        membership_type: selectedMembershipType,
+                        amount: amount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Fee calculation error:', data.error);
+                    feeBreakdown.style.display = 'none';
+                    return;
+                }
+                
+                currentFeeData = data;
+                
+                // Update fee display
+                document.getElementById('base-amount').textContent = data.base_amount_dollars.toFixed(2);
+                document.getElementById('fee-amount').textContent = data.fee_amount_dollars.toFixed(2);
+                document.getElementById('total-amount').textContent = data.total_with_fees_dollars.toFixed(2);
+                
+                // Update fee description with actual amount
+                const feeDescription = document.getElementById('fee-description');
+                feeDescription.textContent = `Cover the $${data.fee_amount_dollars.toFixed(2)} processing fee`;
+                
+                // Always show breakdown when we have valid fee data
+                feeBreakdown.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error calculating fees:', error);
+                feeBreakdown.style.display = 'none';
+            }
+        }
+
+        // Reader functions removed - now handled in admin interface
+
+        async function processPayment() {
+            const payerName = document.getElementById('payer-name').value.trim();
+            if (!payerName) {
+                showStatus('Please enter your name', 'error');
+                return;
+            }
+
+            const payerEmail = document.getElementById('payer-email').value.trim();
+            if (!payerEmail) {
+                showStatus('Please enter your email address', 'error');
+                return;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(payerEmail)) {
+                showStatus('Please enter a valid email address', 'error');
+                return;
+            }
+
+            // Reader selection handled by admin - payment will use default connected reader
+
+            let amount;
+            if (selectedPaymentType === 'donation') {
+                const amountInput = document.getElementById('amount').value;
+                if (!amountInput || parseFloat(amountInput) <= 0) {
+                    showStatus('Please enter a valid donation amount', 'error');
+                    return;
+                }
+                amount = Math.round(parseFloat(amountInput) * 100); // Convert to cents
+            }
+
+            const coverFees = document.getElementById('cover-fees').checked;
+
+            showLoading(true);
+
+            try {
+                // Create payment intent
+                const intentResponse = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_type: selectedPaymentType,
+                        membership_type: selectedMembershipType,
+                        amount: amount,
+                        payer_name: payerName,
+                        payer_email: payerEmail,
+                        cover_fees: coverFees
+                    })
+                });
+
+                const intentData = await intentResponse.json();
+                
+                if (intentData.error) {
+                    showStatus('Error creating payment: ' + intentData.error, 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                currentPaymentIntent = intentData.id;
+
+                // Process payment on terminal
+                const processResponse = await fetch('/process-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id: intentData.id
+                    })
+                });
+
+                const processData = await processResponse.json();
+                
+                if (processData.error) {
+                    showStatus('Error processing payment: ' + processData.error, 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                // Poll for payment status
+                pollPaymentStatus(intentData.id);
+
+            } catch (error) {
+                showStatus('Error processing payment: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+
+        async function pollPaymentStatus(paymentIntentId) {
+            try {
+                const response = await fetch(`/payment-status/${paymentIntentId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showStatus('Error checking payment status: ' + data.error, 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                if (data.status === 'succeeded') {
+                    const amount = (data.amount / 100).toFixed(2);
+                    const payerName = data.metadata.payer_name;
+                    const paymentType = data.metadata.payment_type;
+                    showSuccessModal(amount, payerName, paymentType);
+                    showLoading(false);
+                } else if (data.status === 'canceled' || data.status === 'payment_failed') {
+                    showStatus('Payment was canceled or failed. Please try again.', 'error');
+                    showLoading(false);
+                } else {
+                    // Still processing, poll again
+                    setTimeout(() => pollPaymentStatus(paymentIntentId), 2000);
+                }
+
+            } catch (error) {
+                showStatus('Error checking payment status: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-spinner').style.display = show ? 'block' : 'none';
+            document.getElementById('payment-form').style.display = show ? 'none' : 'block';
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status-message').style.display = 'none';
+        }
+
+        function resetForm() {
+            selectedPaymentType = null;
+            selectedMembershipType = null;
+            currentPaymentIntent = null;
+            currentFeeData = null;
+            
+            document.getElementById('payment-form').style.display = 'none';
+            document.getElementById('payer-name').value = '';
+            document.getElementById('payer-email').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('cover-fees').checked = false;
+            document.getElementById('fee-breakdown').style.display = 'none';
+            
+            hideStatus();
+            showLoading(false);
+        }
+
+        function showSuccessModal(amount, payerName, paymentType) {
+            // Populate success details
+            const successDetails = document.getElementById('success-details');
+            const paymentTypeDisplay = paymentType === 'membership' ? 
+                (selectedMembershipType === 'individual' ? 'Individual Membership' : 'Household Membership') : 
+                'Donation';
+            
+            successDetails.innerHTML = `
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <td class="text-end fw-bold">Amount:</td>
+                                <td class="text-success fw-bold fs-5">$${amount}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-end fw-bold">Type:</td>
+                                <td>${paymentTypeDisplay}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-end fw-bold">Name:</td>
+                                <td>${payerName}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            // Show the modal
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        }
+
+        // Load readers when page loads
+        async function loadReaders() {
+            try {
+                const response = await fetch('/discover-readers', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                const readerList = document.getElementById('reader-list');
+                
+                if (data.readers && data.readers.length > 0) {
+                    let html = '';
+                    data.readers.forEach(reader => {
+                        const statusColor = reader.status === 'online' ? 'text-success' : 'text-warning';
+                        html += `
+                            <div class="reader-item border rounded p-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${reader.label}</strong> (${reader.device_type})
+                                        <br><small class="text-muted">Serial: ...${reader.serial_number}</small>
+                                    </div>
+                                    <div class="${statusColor} fw-bold">${reader.status}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    readerList.innerHTML = html;
+                } else {
+                    readerList.innerHTML = '<div class="text-muted">No readers found. Please use the admin interface to set up readers.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading readers:', error);
+                document.getElementById('reader-list').innerHTML = '<div class="text-warning">Error loading readers. Payment processing will still work.</div>';
+            }
+        }
+
+        // Load readers when page loads
+        document.addEventListener('DOMContentLoaded', loadReaders);
+    </script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
