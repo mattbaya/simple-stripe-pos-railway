@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
-# Explicitly set Stripe API key from environment
-stripe_secret_key = os.getenv('STRIPE_SECRET_KEY')
-if stripe_secret_key:
-    stripe.api_key = stripe_secret_key
-else:
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+# Verify Stripe key is loaded
+if not stripe.api_key:
     logger.error("STRIPE_SECRET_KEY environment variable not found!")
+else:
+    logger.info("Stripe API key loaded successfully")
 STRIPE_LOCATION_ID = os.getenv('STRIPE_LOCATION_ID')
 # Membership amounts in cents
 INDIVIDUAL_MEMBERSHIP_AMOUNT = int(os.getenv('INDIVIDUAL_MEMBERSHIP_AMOUNT', '3500'))  # $35 in cents
@@ -390,22 +390,18 @@ def create_connection_token():
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'healthy', 'version': 'v3'})
+    return jsonify({'status': 'healthy'})
 
 @app.route('/debug-env')
 def debug_env():
     """Debug endpoint to check environment variables"""
-    env_status = {
-        'STRIPE_SECRET_KEY': 'SET' if os.getenv('STRIPE_SECRET_KEY') else 'MISSING',
-        'STRIPE_PUBLISHABLE_KEY': 'SET' if os.getenv('STRIPE_PUBLISHABLE_KEY') else 'MISSING',
-        'STRIPE_LOCATION_ID': os.getenv('STRIPE_LOCATION_ID', 'MISSING'),
-        'FROM_EMAIL': os.getenv('FROM_EMAIL', 'MISSING'),
-        'ORGANIZATION_NAME': os.getenv('ORGANIZATION_NAME', 'MISSING'),
-        'PORT': os.getenv('PORT', 'MISSING'),
-        'FLASK_ENV': os.getenv('FLASK_ENV', 'MISSING'),
-        'deployment_time': datetime.now().isoformat()
+    env_info = {
+        'stripe_key_present': bool(os.getenv('STRIPE_SECRET_KEY')),
+        'stripe_key_prefix': os.getenv('STRIPE_SECRET_KEY', 'MISSING')[:7] if os.getenv('STRIPE_SECRET_KEY') else 'MISSING',
+        'location_id': os.getenv('STRIPE_LOCATION_ID', 'MISSING'),
+        'all_env_keys': [k for k in os.environ.keys() if 'STRIPE' in k]
     }
-    return jsonify(env_status)
+    return jsonify(env_info)
 
 @app.route('/calculate-fees', methods=['POST'])
 def calculate_fees():
@@ -688,16 +684,6 @@ def payment_status(payment_intent_id):
         logger.error(f"Error checking payment status: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# Environment variable debugging at startup
-logger.info("=== ENVIRONMENT VARIABLE STATUS (v2) ===")
-logger.info(f"STRIPE_SECRET_KEY: {'SET' if os.getenv('STRIPE_SECRET_KEY') else 'MISSING'}")
-logger.info(f"STRIPE_LOCATION_ID: {os.getenv('STRIPE_LOCATION_ID', 'MISSING')}")
-logger.info(f"FROM_EMAIL: {os.getenv('FROM_EMAIL', 'MISSING')}")
-logger.info(f"ORGANIZATION_NAME: {os.getenv('ORGANIZATION_NAME', 'MISSING')}")
-logger.info(f"PORT: {os.getenv('PORT', 'MISSING')}")
-logger.info(f"Total ENV vars: {len(os.environ)}")
-logger.info("=======================================")
-
 if __name__ == '__main__':
     required_vars = ['STRIPE_SECRET_KEY', 'STRIPE_LOCATION_ID']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
@@ -706,6 +692,6 @@ if __name__ == '__main__':
         logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
         exit(1)
     
-    logger.info("Starting POS application")
+    logger.info("Starting POS application - Railway deployment")
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

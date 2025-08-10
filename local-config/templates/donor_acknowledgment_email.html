@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You for Your Donation</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }}
+        .email-container {{
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        .letterhead {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .letterhead img {{
+            max-width: 100%;
+            height: auto;
+        }}
+        .date {{
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }}
+        .greeting {{
+            font-size: 16px;
+            margin-bottom: 20px;
+        }}
+        .content p {{
+            margin-bottom: 15px;
+            text-align: justify;
+        }}
+        .donation-details {{
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+        }}
+        .tax-info {{
+            background-color: #fff8dc;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }}
+        .signature {{
+            margin-top: 30px;
+        }}
+        .contact-info {{
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }}
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="letterhead">
+            <img src="cid:letterhead" alt="South Williamstown Community Association">
+        </div>
+        
+        <div class="date">{payment_date}</div>
+        
+        <div class="greeting">
+            Dear {payer_name},
+        </div>
+        
+        <div class="content">
+            <p>Thank you very much for your generous {payment_type} of <strong>{amount_formatted}</strong> to the South Williamstown Community Association. Your {payment_type} is greatly appreciated and will support our mission to promote community and to engage in historic preservation and neighborhood building for Williamstown and surrounding locales.</p>
+            
+            <div class="donation-details">
+                <strong>{payment_type_title} Details:</strong><br>
+                Date: {payment_date}<br>
+                Amount: {amount_formatted}<br>
+                Payment Method: Mobile card reader at community event<br>
+                Transaction ID: {payment_intent_id}
+            </div>
+            
+            {membership_message}
+            
+            <p>Your {payment_type} was received by the South Williamstown Community Association (SWCA). SWCA is recognized as a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code and can accept tax-deductible donations in accordance with the Internal Revenue Service requirements.</p>
+            
+            <div class="tax-info">
+                <strong>Tax Receipt Information:</strong><br>
+                SWCA received your contribution on {payment_date} in the amount of {amount_formatted} which was paid in person using our mobile card reader at one of our community events. This letter is your receipt for income tax purposes. {goods_services_statement} For your records, SWCA's Tax ID Number is <strong>04-2751459</strong>. Please print this page and keep it with your tax records.
+            </div>
+            
+            <p>If you have any questions, please email <a href="mailto:treasurer@southwilliamstown.org">treasurer@southwilliamstown.org</a>.</p>
+            
+            <p>On behalf of the entire community, we wish to express our sincere gratitude for your {payment_type}.</p>
+        </div>
+        
+        <div class="signature">
+            <p>Sincerely,</p>
+            <p><strong>Tamanika Steward, President</strong><br>
+            South Williamstown Community Association</p>
+        </div>
+        
+        <div class="contact-info">
+            <p><em>This is an automated receipt. Please retain this email for your tax records.</em></p>
+        </div>
+    </div>
+</body>
+</html>
