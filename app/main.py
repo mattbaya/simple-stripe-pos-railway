@@ -684,13 +684,14 @@ def payment_status(payment_intent_id):
         return jsonify({'error': str(e)}), 500
 
 # Environment variable debugging at startup
-logger.info("=== ENVIRONMENT VARIABLE STATUS ===")
+logger.info("=== ENVIRONMENT VARIABLE STATUS (v2) ===")
 logger.info(f"STRIPE_SECRET_KEY: {'SET' if os.getenv('STRIPE_SECRET_KEY') else 'MISSING'}")
 logger.info(f"STRIPE_LOCATION_ID: {os.getenv('STRIPE_LOCATION_ID', 'MISSING')}")
 logger.info(f"FROM_EMAIL: {os.getenv('FROM_EMAIL', 'MISSING')}")
 logger.info(f"ORGANIZATION_NAME: {os.getenv('ORGANIZATION_NAME', 'MISSING')}")
 logger.info(f"PORT: {os.getenv('PORT', 'MISSING')}")
-logger.info("===================================")
+logger.info(f"Total ENV vars: {len(os.environ)}")
+logger.info("=======================================")
 
 if __name__ == '__main__':
     required_vars = ['STRIPE_SECRET_KEY', 'STRIPE_LOCATION_ID']
