@@ -390,7 +390,7 @@ def create_connection_token():
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'healthy'})
+    return jsonify({'status': 'healthy', 'version': 'v3'})
 
 @app.route('/debug-env')
 def debug_env():
