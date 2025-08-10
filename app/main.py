@@ -20,7 +20,12 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+# Explicitly set Stripe API key from environment
+stripe_secret_key = os.getenv('STRIPE_SECRET_KEY')
+if stripe_secret_key:
+    stripe.api_key = stripe_secret_key
+else:
+    logger.error("STRIPE_SECRET_KEY environment variable not found!")
 STRIPE_LOCATION_ID = os.getenv('STRIPE_LOCATION_ID')
 # Membership amounts in cents
 INDIVIDUAL_MEMBERSHIP_AMOUNT = int(os.getenv('INDIVIDUAL_MEMBERSHIP_AMOUNT', '3500'))  # $35 in cents
