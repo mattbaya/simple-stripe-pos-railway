@@ -397,7 +397,8 @@ def debug_env():
         'FROM_EMAIL': os.getenv('FROM_EMAIL', 'MISSING'),
         'ORGANIZATION_NAME': os.getenv('ORGANIZATION_NAME', 'MISSING'),
         'PORT': os.getenv('PORT', 'MISSING'),
-        'FLASK_ENV': os.getenv('FLASK_ENV', 'MISSING')
+        'FLASK_ENV': os.getenv('FLASK_ENV', 'MISSING'),
+        'deployment_time': datetime.now().isoformat()
     }
     return jsonify(env_status)
 
