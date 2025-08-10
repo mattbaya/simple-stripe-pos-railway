@@ -738,8 +738,13 @@
             }
         }
 
-        // Load readers when page loads
-        document.addEventListener('DOMContentLoaded', loadReaders);
+        // Load readers when page loads and ensure form defaults
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReaders();
+            // Ensure fee coverage checkbox defaults to unchecked
+            document.getElementById('cover-fees').checked = false;
+            document.getElementById('fee-breakdown').style.display = 'none';
+        });
     </script>
     
     <!-- Bootstrap JS -->
