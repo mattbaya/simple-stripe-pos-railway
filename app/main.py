@@ -387,6 +387,20 @@ def create_connection_token():
 def health():
     return jsonify({'status': 'healthy'})
 
+@app.route('/debug-env')
+def debug_env():
+    """Debug endpoint to check environment variables"""
+    env_status = {
+        'STRIPE_SECRET_KEY': 'SET' if os.getenv('STRIPE_SECRET_KEY') else 'MISSING',
+        'STRIPE_PUBLISHABLE_KEY': 'SET' if os.getenv('STRIPE_PUBLISHABLE_KEY') else 'MISSING',
+        'STRIPE_LOCATION_ID': os.getenv('STRIPE_LOCATION_ID', 'MISSING'),
+        'FROM_EMAIL': os.getenv('FROM_EMAIL', 'MISSING'),
+        'ORGANIZATION_NAME': os.getenv('ORGANIZATION_NAME', 'MISSING'),
+        'PORT': os.getenv('PORT', 'MISSING'),
+        'FLASK_ENV': os.getenv('FLASK_ENV', 'MISSING')
+    }
+    return jsonify(env_status)
+
 @app.route('/calculate-fees', methods=['POST'])
 def calculate_fees():
     try:
@@ -667,6 +681,15 @@ def payment_status(payment_intent_id):
     except Exception as e:
         logger.error(f"Error checking payment status: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+# Environment variable debugging at startup
+logger.info("=== ENVIRONMENT VARIABLE STATUS ===")
+logger.info(f"STRIPE_SECRET_KEY: {'SET' if os.getenv('STRIPE_SECRET_KEY') else 'MISSING'}")
+logger.info(f"STRIPE_LOCATION_ID: {os.getenv('STRIPE_LOCATION_ID', 'MISSING')}")
+logger.info(f"FROM_EMAIL: {os.getenv('FROM_EMAIL', 'MISSING')}")
+logger.info(f"ORGANIZATION_NAME: {os.getenv('ORGANIZATION_NAME', 'MISSING')}")
+logger.info(f"PORT: {os.getenv('PORT', 'MISSING')}")
+logger.info("===================================")
 
 if __name__ == '__main__':
     required_vars = ['STRIPE_SECRET_KEY', 'STRIPE_LOCATION_ID']
