@@ -22,9 +22,9 @@ RUN mkdir -p /app/logs
 RUN chown -R appuser:appuser /app
 USER appuser
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:5000/health')" || exit 1
+# Health check - remove since Railway handles this
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#     CMD python -c "import requests; requests.get('http://localhost:5000/health')" || exit 1
 
 EXPOSE $PORT
 
