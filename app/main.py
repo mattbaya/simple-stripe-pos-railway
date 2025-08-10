@@ -413,6 +413,7 @@ def calculate_fees():
         amount = data.get('amount')
         payment_type = data.get('payment_type')
         membership_type = data.get('membership_type')
+        additional_donation = data.get('additional_donation', 0)
         
         # Determine base amount
         if payment_type == 'membership':
@@ -422,6 +423,11 @@ def calculate_fees():
                 base_amount = HOUSEHOLD_MEMBERSHIP_AMOUNT
             else:
                 return jsonify({'error': 'Invalid membership type'}), 400
+            
+            # Add additional donation if provided
+            if additional_donation and additional_donation > 0:
+                base_amount += int(additional_donation * 100)  # Convert to cents
+                
         elif payment_type == 'donation':
             if not amount or amount <= 0:
                 return jsonify({'error': 'Invalid donation amount'}), 400
@@ -455,6 +461,7 @@ def create_payment_intent():
         payer_name = data.get('payer_name', '')
         payer_email = data.get('payer_email', '')
         cover_fees = data.get('cover_fees', False)
+        additional_donation = data.get('additional_donation', 0)
         
         # Determine base amount
         if payment_type == 'membership':
@@ -466,6 +473,12 @@ def create_payment_intent():
                 description = f"Household membership payment from {payer_name}"
             else:
                 return jsonify({'error': 'Invalid membership type'}), 400
+                
+            # Add additional donation if provided
+            if additional_donation and additional_donation > 0:
+                base_amount += int(additional_donation * 100)  # Convert to cents
+                description += f" + ${additional_donation:.2f} additional donation"
+                
         else:
             base_amount = amount
             description = f"Donation from {payer_name}"
