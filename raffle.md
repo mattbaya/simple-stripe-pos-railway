@@ -225,3 +225,71 @@ Organization emails for raffle purchases include:
 - Standard transaction details
 
 This comprehensive raffle system enhances fundraising capabilities while maintaining the professional, user-friendly experience of the existing POS system.
+
+## Recent Updates and Improvements
+
+### UI/UX Enhancement (Latest Version)
+
+#### Improved Package Selection System
+- **Larger Package Buttons**: Redesigned with 80px height, matching main page button style
+- **Radio-Style Selection**: Only one package can be selected at a time with visual highlighting
+- **Default Selection**: $10 package (12 tickets) pre-selected with blue highlighting on page load
+- **Better Typography**: 1.1rem font size with bold pricing for better readability
+
+#### Custom Quantity Gating
+- **Checkbox Control**: Custom quantity input now hidden behind a checkbox
+- **Clear Labeling**: "Need more than 25 tickets? Enter custom quantity" with explicit guidance
+- **Mutual Exclusivity**: Selecting a package automatically disables custom input and vice versa
+- **Validation**: 26+ minimum enforced with clear error messaging
+
+#### Visual Feedback Improvements
+- **Real-Time Display**: Large, prominent "Selected: X tickets for $Y.00" summary
+- **Button States**: Selected packages highlighted in blue, unselected in outline style
+- **Immediate Updates**: Selection display changes instantly when packages are clicked
+- **Professional Layout**: Clean, organized appearance with proper spacing
+
+#### Multiple Email Recipients
+- **Enhanced Notifications**: Support for comma-separated email addresses in `NOTIFICATION_EMAIL`
+- **Robust Delivery**: Individual logging and error handling for each recipient
+- **Configuration Example**: `NOTIFICATION_EMAIL=info@domain.org,treasurer@domain.org`
+- **Backward Compatible**: Still works with single email addresses
+
+#### Button Design Refinements
+- **Clean Raffle Button**: Removed "$0.80 each" text for cleaner appearance
+- **Proportional Image Scaling**: Custom raffle image scales to 80% width, 60% height with `object-fit: contain`
+- **Enhanced Emoji Fallback**: Larger 48px emoji when custom image unavailable
+- **Better Visual Hierarchy**: Focuses attention on "Raffle Tickets" text
+
+### Technical Improvements
+
+#### JavaScript Architecture
+- **State Management**: Proper tracking of `selectedRaffleQuantity`, `selectedRafflePrice`, and `isCustomQuantity`
+- **Function Separation**: Distinct handlers for package selection vs. custom quantity input
+- **Form Validation**: Enhanced validation with specific error messages for different scenarios
+- **Initialization Logic**: Automatic default selection when raffle payment type is chosen
+
+#### User Experience Flow
+1. **Default State**: 12 tickets for $10.00 automatically selected and visually highlighted
+2. **Package Selection**: Click any package button to change selection with immediate visual feedback
+3. **Custom Option**: Explicitly check checkbox to unlock bulk quantity input (26+)
+4. **Clear Validation**: Helpful error messages guide users to appropriate options
+
+#### Error Handling
+- **Input Validation**: Real-time checking prevents invalid quantities
+- **Clear Messaging**: Specific error messages for different validation scenarios
+- **Graceful Fallbacks**: System continues working even if individual components fail
+- **User Guidance**: Error messages direct users to correct input methods
+
+### Configuration Updates
+
+#### Environment Variables
+- **RAFFLE_ENABLED**: Simple true/false toggle for entire raffle feature
+- **NOTIFICATION_EMAIL**: Now supports multiple recipients with comma separation
+- **Deployment Ready**: All changes work seamlessly with existing Railway deployment
+
+#### Documentation Updates
+- **README.md**: Updated with multi-email configuration examples
+- **CLAUDE.md**: Enhanced with raffle feature descriptions and configuration notes
+- **Deployment Guide**: Clear instructions for enabling raffle functionality
+
+This evolution represents a significant improvement in user experience, making the raffle ticket purchasing process more intuitive, professional, and error-resistant while maintaining the robust backend functionality.
