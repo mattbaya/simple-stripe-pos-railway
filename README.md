@@ -16,7 +16,7 @@ Perfect for organizations that use their POS system **several times per year**:
 
 - **Professional web interface** with donation and membership buttons  
 - **Two membership tiers**: Individual ($35) and Household ($50)
-- **Raffle ticket sales (Optional)**: 🎟️ Pre-set packages and custom quantities at $0.80 each
+- **Raffle ticket sales (Optional)**: 🎟️ Pre-set packages (5-25) and custom quantities (26+) at $0.80 each
 - Integration with Stripe S700 terminal for card-present transactions
 - **Smart fee coverage (Opt-in)**: Users can choose to cover 2.9% + $0.30 Stripe processing fees
 - **Intelligent fee display**: Breakdown only shows when user opts to cover fees

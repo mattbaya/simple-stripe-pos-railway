@@ -292,8 +292,8 @@
                                     </div>
                                 </div>
                                 <div class="mb-2">
-                                    <label for="custom-raffle-quantity" class="form-label">Or enter custom quantity:</label>
-                                    <input type="number" class="form-control" id="custom-raffle-quantity" min="1" step="1" placeholder="Enter quantity" onchange="updateRaffleCalculation()">
+                                    <label for="custom-raffle-quantity" class="form-label">Or enter custom quantity (26+):</label>
+                                    <input type="number" class="form-control" id="custom-raffle-quantity" min="26" step="1" placeholder="26 or more tickets" onchange="updateRaffleCalculation()">
                                 </div>
                                 <div class="alert alert-info">
                                     <small><strong>Total:</strong> $<span id="raffle-total">0.00</span> for <span id="raffle-ticket-count">0</span> tickets</small>
@@ -493,6 +493,16 @@
 
         function updateRaffleCalculation() {
             const quantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+            
+            // Validate minimum quantity for custom input
+            if (quantity > 0 && quantity < 26) {
+                document.getElementById('custom-raffle-quantity').value = '';
+                document.getElementById('raffle-total').textContent = '0.00';
+                document.getElementById('raffle-ticket-count').textContent = '0';
+                showStatus('Custom quantities must be 26 or more tickets. Use preset buttons for smaller amounts.', 'error');
+                return;
+            }
+            
             const total = quantity * 0.80; // $0.80 per ticket
             
             document.getElementById('raffle-total').textContent = total.toFixed(2);
@@ -639,6 +649,10 @@
                 raffleQuantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
                 if (raffleQuantity <= 0) {
                     showStatus('Please select the number of raffle tickets', 'error');
+                    return;
+                }
+                if (raffleQuantity > 0 && raffleQuantity < 26) {
+                    showStatus('Custom quantities must be 26 or more tickets. Use preset buttons for smaller amounts.', 'error');
                     return;
                 }
             }

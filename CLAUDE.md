@@ -123,7 +123,7 @@ graph TD
 ## Raffle Tickets Feature
 - **Toggle Control**: Easily enabled/disabled via `RAFFLE_ENABLED` environment variable
 - **Pre-set Packages**: 🎟️ 5 for $5, 🎟️ 12 for $10, 🎟️ 25 for $20
-- **Custom Quantities**: Users can specify any quantity at $0.80 per ticket
+- **Custom Quantities**: Users can specify quantities of 26+ tickets at $0.80 per ticket
 - **Visual Feedback**: Real-time calculation display showing total cost and ticket count
 - **Fee Coverage**: Users can opt to cover processing fees like other payment types
 - **Special Email Receipt**: Non-tax-deductible confirmation email with raffle-specific messaging

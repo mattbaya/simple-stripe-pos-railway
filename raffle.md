@@ -23,7 +23,7 @@ A comprehensive raffle ticket sales system has been added to the Community POS S
   - 🎟️ 5 tickets for $5.00 ($1.00 per ticket - discounted)
   - 🎟️ 12 tickets for $10.00 ($0.83 per ticket - discounted) 
   - 🎟️ 25 tickets for $20.00 ($0.80 per ticket - standard rate)
-- **Custom Quantities**: Users can enter any quantity for purchases over 25 tickets
+- **Custom Quantities**: Users can enter quantities of 26+ tickets (preset buttons cover 5-25)
 - **Real-time Calculation**: Live display of total cost and ticket count
 
 ### 💳 Payment Processing
