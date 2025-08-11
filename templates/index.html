@@ -273,30 +273,41 @@
                             </div>
                             
                             <div id="raffle-quantity" class="mb-3" style="display: none;">
-                                <label for="raffle-tickets" class="form-label">Number of Raffle Tickets</label>
-                                <div class="row g-2 mb-3">
+                                <label class="form-label">Select Raffle Package</label>
+                                <div class="row g-3 mb-4">
                                     <div class="col-4">
-                                        <button type="button" class="btn btn-outline-primary w-100" onclick="selectRafflePackage(5)">
-                                            🎟️ 5 for $5
+                                        <button type="button" class="btn btn-outline-primary w-100 raffle-package-btn" style="height: 80px; font-size: 1.1rem; font-weight: 600;" onclick="selectRafflePackage(5, '$5', this)" id="package-5">
+                                            🎟️ 5 tickets<br><strong>$5.00</strong>
                                         </button>
                                     </div>
                                     <div class="col-4">
-                                        <button type="button" class="btn btn-outline-primary w-100" onclick="selectRafflePackage(12)">
-                                            🎟️ 12 for $10
+                                        <button type="button" class="btn btn-primary w-100 raffle-package-btn" style="height: 80px; font-size: 1.1rem; font-weight: 600;" onclick="selectRafflePackage(12, '$10', this)" id="package-12">
+                                            🎟️ 12 tickets<br><strong>$10.00</strong>
                                         </button>
                                     </div>
                                     <div class="col-4">
-                                        <button type="button" class="btn btn-outline-primary w-100" onclick="selectRafflePackage(25)">
-                                            🎟️ 25 for $20
+                                        <button type="button" class="btn btn-outline-primary w-100 raffle-package-btn" style="height: 80px; font-size: 1.1rem; font-weight: 600;" onclick="selectRafflePackage(25, '$20', this)" id="package-25">
+                                            🎟️ 25 tickets<br><strong>$20.00</strong>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="mb-2">
-                                    <label for="custom-raffle-quantity" class="form-label">Or enter custom quantity (26+):</label>
-                                    <input type="number" class="form-control" id="custom-raffle-quantity" min="26" step="1" placeholder="26 or more tickets" onchange="updateRaffleCalculation()">
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enable-custom-quantity" onchange="toggleCustomQuantity()">
+                                    <label class="form-check-label" for="enable-custom-quantity">
+                                        <strong>Need more than 25 tickets? Enter custom quantity</strong>
+                                    </label>
                                 </div>
+                                
+                                <div id="custom-quantity-section" class="mb-3" style="display: none;">
+                                    <label for="custom-raffle-quantity" class="form-label">Enter custom quantity (26+):</label>
+                                    <input type="number" class="form-control" id="custom-raffle-quantity" min="26" step="1" placeholder="26 or more tickets" onchange="updateCustomRaffleCalculation()">
+                                </div>
+                                
                                 <div class="alert alert-info">
-                                    <small><strong>Total:</strong> $<span id="raffle-total">0.00</span> for <span id="raffle-ticket-count">0</span> tickets</small>
+                                    <div style="font-size: 1.2rem; font-weight: bold;">
+                                        <strong>Selected:</strong> <span id="raffle-ticket-count">12</span> tickets for $<span id="raffle-total">10.00</span>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -440,8 +451,16 @@
             document.getElementById('renewal-donation-amount').value = '';
             document.getElementById('renewal-amount').style.display = 'none';
             document.getElementById('custom-raffle-quantity').value = '';
-            document.getElementById('raffle-total').textContent = '0.00';
-            document.getElementById('raffle-ticket-count').textContent = '0';
+            document.getElementById('enable-custom-quantity').checked = false;
+            document.getElementById('custom-quantity-section').style.display = 'none';
+            
+            // Reset raffle package selection
+            document.querySelectorAll('.raffle-package-btn').forEach(btn => {
+                btn.className = 'btn btn-outline-primary w-100 raffle-package-btn';
+            });
+            selectedRaffleQuantity = 12;
+            selectedRafflePrice = 10.00;
+            isCustomQuantity = false;
             
             selectedPaymentType = type;
             selectedMembershipType = membershipType;
@@ -467,6 +486,11 @@
             } else if (type === 'raffle') {
                 document.getElementById('payment-title').textContent = 'Purchase Raffle Tickets';
                 document.getElementById('raffle-quantity').style.display = 'block';
+                
+                // Initialize default selection (12 tickets for $10)
+                setTimeout(() => {
+                    selectRafflePackage(12, '$10', document.getElementById('package-12'));
+                }, 100);
             }
             
             hideStatus();
@@ -486,12 +510,72 @@
             updateFeeCalculation();
         }
 
-        function selectRafflePackage(quantity) {
-            document.getElementById('custom-raffle-quantity').value = quantity;
-            updateRaffleCalculation();
+        let selectedRaffleQuantity = 12; // Default to $10 package
+        let selectedRafflePrice = 10.00; // Default price
+        let isCustomQuantity = false;
+
+        function selectRafflePackage(quantity, price, buttonElement) {
+            // Reset all buttons to outline style
+            document.querySelectorAll('.raffle-package-btn').forEach(btn => {
+                btn.className = 'btn btn-outline-primary w-100 raffle-package-btn';
+            });
+            
+            // Highlight selected button
+            buttonElement.className = 'btn btn-primary w-100 raffle-package-btn';
+            
+            // Disable custom quantity when package selected
+            document.getElementById('enable-custom-quantity').checked = false;
+            document.getElementById('custom-quantity-section').style.display = 'none';
+            document.getElementById('custom-raffle-quantity').value = '';
+            isCustomQuantity = false;
+            
+            // Set selected values
+            selectedRaffleQuantity = quantity;
+            selectedRafflePrice = parseFloat(price.replace('$', ''));
+            
+            // Update display
+            document.getElementById('raffle-ticket-count').textContent = quantity.toString();
+            document.getElementById('raffle-total').textContent = selectedRafflePrice.toFixed(2);
+            
+            // Update fee calculation
+            updateFeeCalculation();
         }
 
-        function updateRaffleCalculation() {
+        function toggleCustomQuantity() {
+            const isEnabled = document.getElementById('enable-custom-quantity').checked;
+            const customSection = document.getElementById('custom-quantity-section');
+            
+            if (isEnabled) {
+                // Show custom input
+                customSection.style.display = 'block';
+                isCustomQuantity = true;
+                
+                // Reset package buttons
+                document.querySelectorAll('.raffle-package-btn').forEach(btn => {
+                    btn.className = 'btn btn-outline-primary w-100 raffle-package-btn';
+                });
+                
+                // Clear selection display
+                document.getElementById('raffle-ticket-count').textContent = '0';
+                document.getElementById('raffle-total').textContent = '0.00';
+                selectedRaffleQuantity = 0;
+                selectedRafflePrice = 0;
+            } else {
+                // Hide custom input and reset to default package
+                customSection.style.display = 'none';
+                document.getElementById('custom-raffle-quantity').value = '';
+                isCustomQuantity = false;
+                
+                // Select default $10 package
+                selectRafflePackage(12, '$10', document.getElementById('package-12'));
+            }
+            
+            updateFeeCalculation();
+        }
+
+        function updateCustomRaffleCalculation() {
+            if (!isCustomQuantity) return;
+            
             const quantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
             
             // Validate minimum quantity for custom input
@@ -499,11 +583,15 @@
                 document.getElementById('custom-raffle-quantity').value = '';
                 document.getElementById('raffle-total').textContent = '0.00';
                 document.getElementById('raffle-ticket-count').textContent = '0';
+                selectedRaffleQuantity = 0;
+                selectedRafflePrice = 0;
                 showStatus('Custom quantities must be 26 or more tickets. Use preset buttons for smaller amounts.', 'error');
                 return;
             }
             
             const total = quantity * 0.80; // $0.80 per ticket
+            selectedRaffleQuantity = quantity;
+            selectedRafflePrice = total;
             
             document.getElementById('raffle-total').textContent = total.toFixed(2);
             document.getElementById('raffle-ticket-count').textContent = quantity.toString();
@@ -543,7 +631,7 @@
                     }
                 }
             } else if (selectedPaymentType === 'raffle') {
-                raffleQuantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+                raffleQuantity = selectedRaffleQuantity;
                 if (raffleQuantity <= 0) {
                     feeBreakdown.style.display = 'none';
                     // Reset fee description to default
@@ -646,13 +734,9 @@
                     additionalDonation = parseFloat(renewalAmount);
                 }
             } else if (selectedPaymentType === 'raffle') {
-                raffleQuantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+                raffleQuantity = selectedRaffleQuantity;
                 if (raffleQuantity <= 0) {
-                    showStatus('Please select the number of raffle tickets', 'error');
-                    return;
-                }
-                if (raffleQuantity > 0 && raffleQuantity < 26) {
-                    showStatus('Custom quantities must be 26 or more tickets. Use preset buttons for smaller amounts.', 'error');
+                    showStatus('Please select a raffle package', 'error');
                     return;
                 }
             }
@@ -785,8 +869,16 @@
             
             // Reset raffle fields
             document.getElementById('custom-raffle-quantity').value = '';
-            document.getElementById('raffle-total').textContent = '0.00';
-            document.getElementById('raffle-ticket-count').textContent = '0';
+            document.getElementById('enable-custom-quantity').checked = false;
+            document.getElementById('custom-quantity-section').style.display = 'none';
+            
+            // Reset raffle package buttons and set default
+            document.querySelectorAll('.raffle-package-btn').forEach(btn => {
+                btn.className = 'btn btn-outline-primary w-100 raffle-package-btn';
+            });
+            selectedRaffleQuantity = 12;
+            selectedRafflePrice = 10.00;
+            isCustomQuantity = false;
             
             hideStatus();
             showLoading(false);
