@@ -893,7 +893,7 @@
             if (paymentType === 'membership') {
                 paymentTypeDisplay = selectedMembershipType === 'individual' ? 'Individual Membership' : 'Household Membership';
             } else if (paymentType === 'raffle') {
-                const quantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+                const quantity = selectedRaffleQuantity || 0;
                 paymentTypeDisplay = `Raffle Tickets (${quantity} tickets)`;
             } else {
                 paymentTypeDisplay = 'Donation';
