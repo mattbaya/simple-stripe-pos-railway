@@ -17,14 +17,16 @@ Perfect for organizations that use their POS system **several times per year**:
 - **Professional web interface** with donation and membership buttons  
 - **Two membership tiers**: Individual ($35) and Household ($50)
 - Integration with Stripe S700 terminal for card-present transactions
-- **Optional fee coverage**: Users can choose to cover 2.9% + $0.30 Stripe processing fees
-- Real-time fee calculation with transparent breakdown display
+- **Smart fee coverage (Opt-in)**: Users can choose to cover 2.9% + $0.30 Stripe processing fees
+- **Intelligent fee display**: Breakdown only shows when user opts to cover fees
+- **Renewal donations**: Membership payments can include additional donations
 - **Required email validation**: Ensures receipt delivery with HTML5 and JavaScript validation
 - Custom donation amounts with dynamic fee calculations
 - **Professional HTML email receipts** sent to donors with embedded letterhead using Gmail API with OAuth2
 - **Tax-compliant receipt format** with 501(c)(3) information and proper documentation
 - **Email notifications** sent to your configured organization email
 - **Professional success modal** with organization logo and animated confirmation
+- **Clean form experience**: All fields reset when switching between payment types
 - **Automatic reader discovery**: Displays connected terminal status on page load
 - Customizable organization branding
 - **Automatic HTTPS**: SSL certificates handled by Railway
@@ -218,6 +220,18 @@ python app/main.py
 - **Stripe**: [Terminal Documentation](https://stripe.com/docs/terminal)
 - **Railway**: [Documentation](https://docs.railway.app)
 - **Gmail API**: [Python Quickstart](https://developers.google.com/gmail/api/quickstart/python)
+
+## Recent Updates
+
+### Latest Improvements (2024)
+- ✅ **Smart Fee Display**: Fee breakdown only appears when users opt to cover processing fees
+- ✅ **Consistent Typography**: Uniform 28px font sizing throughout payment interface  
+- ✅ **Renewal Donations**: Members can add additional donations when purchasing memberships
+- ✅ **Enhanced UX**: All form fields reset cleanly when switching between payment types
+- ✅ **Opt-in Behavior**: All fee coverage and additional options require explicit user selection
+
+### Live Deployment
+**🚀 Currently running at**: https://simple-stripe-pos-railway-production.up.railway.app
 
 ---
 

@@ -5,10 +5,12 @@
 This is a **Flask-based point-of-sale system** for community organizations that enables in-person payment processing for donations and memberships using Stripe Terminal hardware. 
 
 ### Key Features:
-- ✅ Optional fee coverage allowing users to cover Stripe processing fees (2.9% + $0.30)
-- ✅ Transparent cost breakdown
-- ✅ Professional success modal with organization branding
-- ✅ Automatic email receipt system
+- ✅ **Fee Coverage (Opt-in)**: Users can choose to cover Stripe processing fees (2.9% + $0.30)
+- ✅ **Smart Fee Display**: Fee breakdown only shows when user opts to cover fees  
+- ✅ **Renewal Donations**: Membership purchases can include additional donations
+- ✅ **Clean Form Experience**: All fields reset when switching between payment types
+- ✅ **Professional UI**: Success modal with organization branding
+- ✅ **Email System**: Automatic receipt and notification emails via Gmail API
 
 ## 🛠️ Technology Stack
 
@@ -17,10 +19,10 @@ This is a **Flask-based point-of-sale system** for community organizations that 
 | **Backend** | Python Flask web application |
 | **Payment Processing** | Stripe Terminal API (v8.11.0) with S700 card reader |
 | **Email** | OAuth2-authenticated Gmail API for receipts and notifications |
-| **Deployment** | Docker containers with Caddy reverse proxy for SSL |
+| **Deployment** | Railway platform with Docker containers |
 | **Frontend** | Bootstrap-based web interface with JavaScript |
 | **Fee Calculation** | Real-time Stripe fee calculations with optional coverage |
-| **SSL** | Automatic HTTPS with Let's Encrypt via Caddy |
+| **SSL** | Automatic HTTPS provided by Railway platform |
 
 ## Key Files
 - `app/main.py` - Main Flask application with payment processing logic
@@ -152,3 +154,34 @@ graph TD
 - **Fallback Support**: Graceful fallback to simple HTML email if template loading fails
 - **Gmail API Integration**: Secure OAuth2-authenticated sending via Gmail API
 - **Local-Config Support**: Automatically uses organization-specific templates from local-config when available
+
+## 🚀 Railway Deployment 
+
+**Live URL**: https://simple-stripe-pos-railway-production.up.railway.app
+
+### Deployment Status
+- ✅ **Environment Variables**: All 15 variables configured via Railway CLI
+- ✅ **Docker Build**: Using Dockerfile for consistent container deployment
+- ✅ **Automatic HTTPS**: Railway provides SSL certificates automatically
+- ✅ **Domain Redirects**: Disabled for Railway domains to prevent redirect loops
+- ✅ **Health Monitoring**: `/health` endpoint for Railway health checks
+
+### Recent Improvements (Latest Updates)
+- **Smart Fee Display**: Fee breakdown only appears when "Help us cover processing fees" is checked
+- **Consistent Typography**: All fee breakdown text uses uniform 28px font sizing  
+- **Renewal Donations**: Members can add additional donations to membership payments
+- **Form State Management**: All fields reset cleanly when switching between payment types
+- **Opt-in Behavior**: Fee coverage and additional donations require explicit user selection
+
+### Railway Configuration
+- **Service**: `simple-stripe-pos-railway`
+- **Environment**: `production` 
+- **Build**: Docker-based deployment using project Dockerfile
+- **Port**: Dynamic PORT environment variable (handled by Flask app)
+- **Variables**: 15+ environment variables for Stripe, Gmail, and organization config
+
+### Key Commits
+- `123f8af`: Form field reset improvements
+- `167abcd`: Fee coverage opt-in enforcement  
+- `8de3599`: Fee breakdown display and renewal donation features
+- `7ea0bd5`: Railway domain redirect fixes
