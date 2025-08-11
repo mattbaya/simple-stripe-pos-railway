@@ -210,6 +210,29 @@
                 <h1 class="text-center mb-5">{{ organization_name }} Payment System</h1>
                 
                 <div class="row mb-4">
+                    {% if raffle_enabled %}
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100 payment-button" onclick="selectPaymentType('donation')">
+                            Make a Donation
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100 payment-button" onclick="selectPaymentType('membership', 'individual')">
+                            Individual Membership<br><small>$35</small>
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100 payment-button" onclick="selectPaymentType('membership', 'household')">
+                            Household Membership<br><small>$50</small>
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-warning w-100 payment-button" onclick="selectPaymentType('raffle')" style="background: linear-gradient(135deg, #ff9a56 0%, #ffb347 100%); border: none;">
+                            <img src="https://southwilliamstown.org/SWCA-raffle.png" alt="🎟️" style="width: 30px; height: auto; margin-bottom: 5px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span style="display: none; font-size: 30px;">🎟️</span><br>
+                            Raffle Tickets<br><small>$0.80 each</small>
+                        </button>
+                    </div>
+                    {% else %}
                     <div class="col-md-4">
                         <button class="btn btn-primary w-100 payment-button" onclick="selectPaymentType('donation')">
                             Make a Donation
@@ -225,6 +248,7 @@
                             Household Membership<br><small>$50</small>
                         </button>
                     </div>
+                    {% endif %}
                 </div>
 
                 <!-- Payment Form -->
@@ -246,6 +270,34 @@
                             <div id="donation-amount" class="mb-3" style="display: none;">
                                 <label for="amount" class="form-label">Donation Amount ($)</label>
                                 <input type="number" class="form-control" id="amount" min="1" step="0.01" placeholder="20.00" onchange="updateFeeCalculation()">
+                            </div>
+                            
+                            <div id="raffle-quantity" class="mb-3" style="display: none;">
+                                <label for="raffle-tickets" class="form-label">Number of Raffle Tickets</label>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-4">
+                                        <button type="button" class="btn btn-outline-primary w-100" onclick="selectRafflePackage(5)">
+                                            🎟️ 5 for $5
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button type="button" class="btn btn-outline-primary w-100" onclick="selectRafflePackage(12)">
+                                            🎟️ 12 for $10
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button type="button" class="btn btn-outline-primary w-100" onclick="selectRafflePackage(25)">
+                                            🎟️ 25 for $20
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label for="custom-raffle-quantity" class="form-label">Or enter custom quantity:</label>
+                                    <input type="number" class="form-control" id="custom-raffle-quantity" min="1" step="1" placeholder="Enter quantity" onchange="updateRaffleCalculation()">
+                                </div>
+                                <div class="alert alert-info">
+                                    <small><strong>Total:</strong> $<span id="raffle-total">0.00</span> for <span id="raffle-ticket-count">0</span> tickets</small>
+                                </div>
                             </div>
                             
                             <!-- Renewal Donation Option for Memberships -->
@@ -387,25 +439,34 @@
             document.getElementById('add-donation').checked = false;
             document.getElementById('renewal-donation-amount').value = '';
             document.getElementById('renewal-amount').style.display = 'none';
+            document.getElementById('custom-raffle-quantity').value = '';
+            document.getElementById('raffle-total').textContent = '0.00';
+            document.getElementById('raffle-ticket-count').textContent = '0';
             
             selectedPaymentType = type;
             selectedMembershipType = membershipType;
             document.getElementById('payment-form').style.display = 'block';
             
+            // Hide all amount input sections first
+            document.getElementById('donation-amount').style.display = 'none';
+            document.getElementById('raffle-quantity').style.display = 'none';
+            document.getElementById('renewal-donation').style.display = 'none';
+            
             if (type === 'donation') {
                 document.getElementById('payment-title').textContent = 'Make a Donation';
                 document.getElementById('donation-amount').style.display = 'block';
-                document.getElementById('renewal-donation').style.display = 'none';
             } else if (type === 'membership') {
                 if (membershipType === 'individual') {
                     document.getElementById('payment-title').textContent = 'Individual Membership Payment ($35)';
                 } else if (membershipType === 'household') {
                     document.getElementById('payment-title').textContent = 'Household Membership Payment ($50)';
                 }
-                document.getElementById('donation-amount').style.display = 'none';
                 document.getElementById('renewal-donation').style.display = 'block';
                 // Calculate fees for membership immediately
                 updateFeeCalculation();
+            } else if (type === 'raffle') {
+                document.getElementById('payment-title').textContent = 'Purchase Raffle Tickets';
+                document.getElementById('raffle-quantity').style.display = 'block';
             }
             
             hideStatus();
@@ -425,6 +486,21 @@
             updateFeeCalculation();
         }
 
+        function selectRafflePackage(quantity) {
+            document.getElementById('custom-raffle-quantity').value = quantity;
+            updateRaffleCalculation();
+        }
+
+        function updateRaffleCalculation() {
+            const quantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+            const total = quantity * 0.80; // $0.80 per ticket
+            
+            document.getElementById('raffle-total').textContent = total.toFixed(2);
+            document.getElementById('raffle-ticket-count').textContent = quantity.toString();
+            
+            updateFeeCalculation();
+        }
+
         async function updateFeeCalculation() {
             const coverFees = document.getElementById('cover-fees').checked;
             const feeBreakdown = document.getElementById('fee-breakdown');
@@ -437,6 +513,7 @@
             }
             
             let amount = null;
+            let raffleQuantity = 0;
             if (selectedPaymentType === 'donation') {
                 const amountInput = document.getElementById('amount').value;
                 if (!amountInput || parseFloat(amountInput) <= 0) {
@@ -455,6 +532,14 @@
                         amount = parseFloat(renewalAmount);
                     }
                 }
+            } else if (selectedPaymentType === 'raffle') {
+                raffleQuantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+                if (raffleQuantity <= 0) {
+                    feeBreakdown.style.display = 'none';
+                    // Reset fee description to default
+                    document.getElementById('fee-description').textContent = 'Cover the processing fee';
+                    return;
+                }
             }
             
             try {
@@ -467,7 +552,8 @@
                         payment_type: selectedPaymentType,
                         membership_type: selectedMembershipType,
                         amount: amount,
-                        additional_donation: selectedPaymentType === 'membership' && document.getElementById('add-donation').checked ? parseFloat(document.getElementById('renewal-donation-amount').value || 0) : 0
+                        additional_donation: selectedPaymentType === 'membership' && document.getElementById('add-donation').checked ? parseFloat(document.getElementById('renewal-donation-amount').value || 0) : 0,
+                        raffle_quantity: raffleQuantity
                     })
                 });
                 
@@ -529,6 +615,7 @@
 
             let amount;
             let additionalDonation = 0;
+            let raffleQuantity = 0;
             
             if (selectedPaymentType === 'donation') {
                 const amountInput = document.getElementById('amount').value;
@@ -547,6 +634,12 @@
                         return;
                     }
                     additionalDonation = parseFloat(renewalAmount);
+                }
+            } else if (selectedPaymentType === 'raffle') {
+                raffleQuantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+                if (raffleQuantity <= 0) {
+                    showStatus('Please select the number of raffle tickets', 'error');
+                    return;
                 }
             }
 
@@ -568,7 +661,8 @@
                         payer_name: payerName,
                         payer_email: payerEmail,
                         cover_fees: coverFees,
-                        additional_donation: additionalDonation
+                        additional_donation: additionalDonation,
+                        raffle_quantity: raffleQuantity
                     })
                 });
 
@@ -675,6 +769,11 @@
             document.getElementById('renewal-donation-amount').value = '';
             document.getElementById('renewal-amount').style.display = 'none';
             
+            // Reset raffle fields
+            document.getElementById('custom-raffle-quantity').value = '';
+            document.getElementById('raffle-total').textContent = '0.00';
+            document.getElementById('raffle-ticket-count').textContent = '0';
+            
             hideStatus();
             showLoading(false);
         }
@@ -682,9 +781,15 @@
         function showSuccessModal(amount, payerName, paymentType) {
             // Populate success details
             const successDetails = document.getElementById('success-details');
-            const paymentTypeDisplay = paymentType === 'membership' ? 
-                (selectedMembershipType === 'individual' ? 'Individual Membership' : 'Household Membership') : 
-                'Donation';
+            let paymentTypeDisplay;
+            if (paymentType === 'membership') {
+                paymentTypeDisplay = selectedMembershipType === 'individual' ? 'Individual Membership' : 'Household Membership';
+            } else if (paymentType === 'raffle') {
+                const quantity = parseInt(document.getElementById('custom-raffle-quantity').value) || 0;
+                paymentTypeDisplay = `Raffle Tickets (${quantity} tickets)`;
+            } else {
+                paymentTypeDisplay = 'Donation';
+            }
             
             successDetails.innerHTML = `
                 <div class="card bg-light">

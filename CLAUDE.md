@@ -11,6 +11,7 @@ This is a **Flask-based point-of-sale system** for community organizations that 
 - ✅ **Clean Form Experience**: All fields reset when switching between payment types
 - ✅ **Professional UI**: Success modal with organization branding
 - ✅ **Email System**: Automatic receipt and notification emails via Gmail API
+- ✅ **Raffle Tickets**: Optional raffle ticket sales with pre-set packages and custom quantities
 
 ## 🛠️ Technology Stack
 
@@ -42,6 +43,7 @@ The application requires these environment variables:
 - `STRIPE_LOCATION_ID` - Terminal location ID  
 - `INDIVIDUAL_MEMBERSHIP_AMOUNT` - Individual membership price (cents, default: 3500)
 - `HOUSEHOLD_MEMBERSHIP_AMOUNT` - Household membership price (cents, default: 5000)
+- `RAFFLE_ENABLED` - Enable/disable raffle ticket sales (true/false, default: false)
 - `ORGANIZATION_NAME/LOGO/WEBSITE` - Branding configuration
 - `DOMAIN_NAME` - Primary domain (pos.yourdomain.org)
 - `NOTIFICATION_EMAIL` - Organization notification recipient
@@ -116,7 +118,18 @@ graph TD
 - Optional checkbox with real-time fee display
 - Transparent breakdown: base amount + processing fee = total
 - Payment metadata tracks fee information for reporting
-- Works for both donations and memberships
+- Works for both donations, memberships, and raffle tickets
+
+## Raffle Tickets Feature
+- **Toggle Control**: Easily enabled/disabled via `RAFFLE_ENABLED` environment variable
+- **Pre-set Packages**: 🎟️ 5 for $5, 🎟️ 12 for $10, 🎟️ 25 for $20
+- **Custom Quantities**: Users can specify any quantity at $0.80 per ticket
+- **Visual Feedback**: Real-time calculation display showing total cost and ticket count
+- **Fee Coverage**: Users can opt to cover processing fees like other payment types
+- **Special Email Receipt**: Non-tax-deductible confirmation email with raffle-specific messaging
+- **Organization Notifications**: Clear identification of raffle funds vs. donations in admin emails
+- **Fallback Design**: Uses emoji 🎟️ when custom raffle image is unavailable
+- **Success Modal**: Displays ticket quantity in payment confirmation
 
 ## User Interface Features
 - **Professional Success Modal**: Displays organization logo, animated checkmark, and payment details
@@ -151,9 +164,11 @@ graph TD
 - **Embedded Images**: Organization letterhead image embedded as inline attachment for consistent display
 - **Template Variables**: Dynamic content including donor name, amount, date, and transaction details
 - **Tax Receipt Information**: Includes 501(c)(3) status, Tax ID, and IRS-compliant receipt language
+- **Raffle Email Template**: Separate non-tax-deductible template for raffle purchases with good luck messaging
 - **Fallback Support**: Graceful fallback to simple HTML email if template loading fails
 - **Gmail API Integration**: Secure OAuth2-authenticated sending via Gmail API
 - **Local-Config Support**: Automatically uses organization-specific templates from local-config when available
+- **Smart Template Selection**: Automatically chooses appropriate template based on payment type
 
 ## 🚀 Railway Deployment 
 

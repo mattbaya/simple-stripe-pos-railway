@@ -31,6 +31,10 @@ STRIPE_LOCATION_ID = os.getenv('STRIPE_LOCATION_ID')
 INDIVIDUAL_MEMBERSHIP_AMOUNT = int(os.getenv('INDIVIDUAL_MEMBERSHIP_AMOUNT', '3500'))  # $35 in cents
 HOUSEHOLD_MEMBERSHIP_AMOUNT = int(os.getenv('HOUSEHOLD_MEMBERSHIP_AMOUNT', '5000'))  # $50 in cents
 
+# Raffle configuration
+RAFFLE_ENABLED = os.getenv('RAFFLE_ENABLED', 'false').lower() == 'true'
+RAFFLE_PRICE_PER_TICKET = 80  # 80 cents per ticket
+
 # Email configuration
 SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
@@ -242,10 +246,96 @@ def send_email(to_email, subject, body, is_html=False, attachments=None):
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
         return False
 
-def send_receipt_email(payer_email, payer_name, amount, payment_type, transaction_id):
+def send_raffle_receipt_email(payer_email, payer_name, amount, raffle_quantity, transaction_id):
+    """Send raffle purchase confirmation email (non-tax-deductible)"""
+    if not payer_email:
+        return False
+    
+    amount_dollars = amount / 100
+    date_str = datetime.now().strftime('%B %d, %Y')
+    
+    subject = f"Raffle Ticket Purchase Confirmation - {ORGANIZATION_NAME}"
+    
+    # Load the raffle HTML template
+    try:
+        local_template_path = os.path.join(os.path.dirname(__file__), '..', 'local-config', 'templates', 'raffle_purchase_email.html')
+        template_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'raffle_purchase_email.html')
+        
+        # Use local-config template if it exists, otherwise use the generic one
+        if os.path.exists(local_template_path):
+            template_path = local_template_path
+            logger.info("Using local-config raffle email template")
+        else:
+            logger.info("Using generic raffle email template")
+            
+        with open(template_path, 'r', encoding='utf-8') as f:
+            html_template = f.read()
+        
+        # Replace template variables
+        html_body = html_template.format(
+            payer_name=payer_name,
+            amount_formatted=f"${amount_dollars:.2f}",
+            payment_date=date_str,
+            organization_name=ORGANIZATION_NAME,
+            payment_intent_id=transaction_id,
+            raffle_quantity=raffle_quantity
+        )
+        
+        # Prepare letterhead image attachment - prefer local-config version
+        attachments = []
+        local_letterhead_path = os.path.join(os.path.dirname(__file__), '..', 'local-config', 'templates', 'SWCA-letterhead-v3-1024x224.png')
+        letterhead_path = local_letterhead_path if os.path.exists(local_letterhead_path) else None
+        
+        if letterhead_path and os.path.exists(letterhead_path):
+            with open(letterhead_path, 'rb') as f:
+                img_data = f.read()
+            
+            letterhead_img = MIMEImage(img_data)
+            letterhead_img.add_header('Content-ID', '<letterhead>')
+            letterhead_img.add_header('Content-Disposition', 'inline', filename='letterhead.png')
+            attachments.append(letterhead_img)
+            logger.info("Using local-config letterhead image for raffle email")
+        else:
+            logger.info("No letterhead image found for raffle email, proceeding without embedded image")
+        
+        return send_email(payer_email, subject, html_body, is_html=True, attachments=attachments)
+        
+    except Exception as e:
+        logger.error(f"Error loading raffle email template: {str(e)}")
+        # Fallback to simple email if template loading fails
+        fallback_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2>🎟️ Raffle Ticket Purchase Confirmation</h2>
+            <p>Dear {payer_name},</p>
+            <p>Thank you for purchasing <strong>{raffle_quantity} raffle tickets</strong> for <strong>${amount_dollars:.2f}</strong>!</p>
+            <p><strong>Purchase Details:</strong><br>
+            Date: {date_str}<br>
+            Amount: ${amount_dollars:.2f}<br>
+            Tickets: {raffle_quantity}<br>
+            Price per ticket: $0.80<br>
+            Transaction ID: {transaction_id}</p>
+            <div style="background-color: #f0f8ff; padding: 15px; margin: 15px 0; border-left: 4px solid #007bff; border-radius: 5px;">
+                <strong>🍀 Good luck in the raffle drawing! 🍀</strong>
+            </div>
+            <div style="background-color: #ffe4e1; padding: 15px; margin: 15px 0; border-left: 4px solid #dc3545; border-radius: 5px;">
+                <strong>Important:</strong> This purchase is <strong>NOT tax-deductible</strong>. Raffle tickets are considered payment for goods and services.
+            </div>
+            <p>Thank you for supporting our community!</p>
+            <p>Sincerely,<br>{ORGANIZATION_NAME}</p>
+        </body>
+        </html>
+        """
+        return send_email(payer_email, subject, fallback_body, is_html=True)
+
+def send_receipt_email(payer_email, payer_name, amount, payment_type, transaction_id, raffle_quantity=None):
     """Send receipt email to the donor using HTML template with letterhead"""
     if not payer_email:
         return False
+    
+    # Use raffle-specific email for raffle purchases
+    if payment_type == 'raffle' and raffle_quantity:
+        return send_raffle_receipt_email(payer_email, payer_name, amount, raffle_quantity, transaction_id)
     
     amount_dollars = amount / 100
     date_str = datetime.now().strftime('%B %d, %Y')
@@ -366,12 +456,18 @@ def calculate_total_with_fees(base_amount_cents):
     fee = calculate_fee_amount(base_amount_cents)
     return base_amount_cents + fee
 
-def send_notification_email(payer_name, payer_email, amount, payment_type, transaction_id):
+def send_notification_email(payer_name, payer_email, amount, payment_type, transaction_id, metadata=None):
     """Send notification email to the organization"""
     amount_dollars = amount / 100
     date_str = datetime.now().strftime('%B %d, %Y at %I:%M %p')
     
     subject = f"New {payment_type} received - ${amount_dollars:.2f}"
+    
+    # Add raffle-specific information if this is a raffle purchase
+    raffle_info = ""
+    if payment_type == 'raffle' and metadata and 'raffle_quantity' in metadata:
+        raffle_quantity = metadata.get('raffle_quantity')
+        raffle_info = f"\n- RAFFLE TICKETS: {raffle_quantity} tickets purchased\n- PRICE PER TICKET: $0.80\n- RAFFLE FUNDS: This payment was for raffle tickets (not tax-deductible)"
     
     body = f"""
 New payment received through the POS system:
@@ -382,7 +478,7 @@ PAYMENT DETAILS:
 - Donor: {payer_name}
 - Email: {payer_email or 'Not provided'}
 - Date: {date_str}
-- Transaction ID: {transaction_id}
+- Transaction ID: {transaction_id}{raffle_info}
 
 This payment was processed through Stripe Terminal at your community event.
 
@@ -397,7 +493,8 @@ def index():
     return render_template('index.html', 
                          organization_name=ORGANIZATION_NAME,
                          organization_logo=ORGANIZATION_LOGO,
-                         organization_website=ORGANIZATION_WEBSITE)
+                         organization_website=ORGANIZATION_WEBSITE,
+                         raffle_enabled=RAFFLE_ENABLED)
 
 @app.route('/admin-readers')
 def admin_readers():
@@ -441,6 +538,7 @@ def calculate_fees():
         payment_type = data.get('payment_type')
         membership_type = data.get('membership_type')
         additional_donation = data.get('additional_donation', 0)
+        raffle_quantity = data.get('raffle_quantity', 0)
         
         # Determine base amount
         if payment_type == 'membership':
@@ -459,6 +557,10 @@ def calculate_fees():
             if not amount or amount <= 0:
                 return jsonify({'error': 'Invalid donation amount'}), 400
             base_amount = int(amount * 100)  # Convert to cents
+        elif payment_type == 'raffle':
+            if not raffle_quantity or raffle_quantity <= 0:
+                return jsonify({'error': 'Invalid raffle ticket quantity'}), 400
+            base_amount = int(raffle_quantity * RAFFLE_PRICE_PER_TICKET)  # 80 cents per ticket
         else:
             return jsonify({'error': 'Invalid payment type'}), 400
         
@@ -489,6 +591,7 @@ def create_payment_intent():
         payer_email = data.get('payer_email', '')
         cover_fees = data.get('cover_fees', False)
         additional_donation = data.get('additional_donation', 0)
+        raffle_quantity = data.get('raffle_quantity', 0)
         
         # Determine base amount
         if payment_type == 'membership':
@@ -506,6 +609,9 @@ def create_payment_intent():
                 base_amount += int(additional_donation * 100)  # Convert to cents
                 description += f" + ${additional_donation:.2f} additional donation"
                 
+        elif payment_type == 'raffle':
+            base_amount = int(raffle_quantity * RAFFLE_PRICE_PER_TICKET)  # 80 cents per ticket
+            description = f"Raffle tickets purchase from {payer_name} - {raffle_quantity} tickets"
         else:
             base_amount = amount
             description = f"Donation from {payer_name}"
@@ -530,6 +636,9 @@ def create_payment_intent():
         
         if payer_email:
             metadata['payer_email'] = payer_email
+            
+        if payment_type == 'raffle':
+            metadata['raffle_quantity'] = str(raffle_quantity)
         
         payment_intent = stripe.PaymentIntent.create(
             amount=final_amount,
@@ -681,14 +790,18 @@ def payment_status(payment_intent_id):
             notification_sent = False
             
             if payer_email:
+                raffle_quantity = None
+                if payment_type == 'raffle' and 'raffle_quantity' in payment_intent.metadata:
+                    raffle_quantity = int(payment_intent.metadata.get('raffle_quantity', 0))
+                
                 receipt_sent = send_receipt_email(
                     payer_email, payer_name, payment_intent.amount, 
-                    payment_type, payment_intent.id
+                    payment_type, payment_intent.id, raffle_quantity
                 )
             
             notification_sent = send_notification_email(
                 payer_name, payer_email, payment_intent.amount,
-                payment_type, payment_intent.id
+                payment_type, payment_intent.id, payment_intent.metadata
             )
             
             # Mark emails as sent to avoid duplicate sends

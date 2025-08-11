@@ -16,6 +16,7 @@ Perfect for organizations that use their POS system **several times per year**:
 
 - **Professional web interface** with donation and membership buttons  
 - **Two membership tiers**: Individual ($35) and Household ($50)
+- **Raffle ticket sales (Optional)**: 🎟️ Pre-set packages and custom quantities at $0.80 each
 - Integration with Stripe S700 terminal for card-present transactions
 - **Smart fee coverage (Opt-in)**: Users can choose to cover 2.9% + $0.30 Stripe processing fees
 - **Intelligent fee display**: Breakdown only shows when user opts to cover fees
@@ -23,6 +24,7 @@ Perfect for organizations that use their POS system **several times per year**:
 - **Required email validation**: Ensures receipt delivery with HTML5 and JavaScript validation
 - Custom donation amounts with dynamic fee calculations
 - **Professional HTML email receipts** sent to donors with embedded letterhead using Gmail API with OAuth2
+- **Separate raffle receipts**: Non-tax-deductible confirmations for raffle purchases with good luck messaging
 - **Tax-compliant receipt format** with 501(c)(3) information and proper documentation
 - **Email notifications** sent to your configured organization email
 - **Professional success modal** with organization logo and animated confirmation
@@ -61,6 +63,9 @@ NOTIFICATION_EMAIL=notifications@yourdomain.org
 # Membership Pricing (in cents)
 INDIVIDUAL_MEMBERSHIP_AMOUNT=3500  # $35.00
 HOUSEHOLD_MEMBERSHIP_AMOUNT=5000   # $50.00
+
+# Optional Features
+RAFFLE_ENABLED=true   # Enable raffle ticket sales (false to disable)
 
 # Gmail OAuth2 (see setup guide below)
 GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
@@ -229,6 +234,7 @@ python app/main.py
 - ✅ **Renewal Donations**: Members can add additional donations when purchasing memberships
 - ✅ **Enhanced UX**: All form fields reset cleanly when switching between payment types
 - ✅ **Opt-in Behavior**: All fee coverage and additional options require explicit user selection
+- ✅ **Raffle Tickets**: Optional 4th button for raffle ticket sales with pre-set packages and custom quantities
 
 ### Live Deployment
 **🚀 Currently running at**: https://simple-stripe-pos-railway-production.up.railway.app
