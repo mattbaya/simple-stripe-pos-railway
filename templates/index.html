@@ -632,6 +632,7 @@
                 }
             } else if (selectedPaymentType === 'raffle') {
                 raffleQuantity = selectedRaffleQuantity;
+                amount = selectedRafflePrice; // Use actual package price, not quantity × $0.80
                 if (raffleQuantity <= 0) {
                     feeBreakdown.style.display = 'none';
                     // Reset fee description to default
@@ -735,6 +736,7 @@
                 }
             } else if (selectedPaymentType === 'raffle') {
                 raffleQuantity = selectedRaffleQuantity;
+                amount = Math.round(selectedRafflePrice * 100); // Convert package price to cents
                 if (raffleQuantity <= 0) {
                     showStatus('Please select a raffle package', 'error');
                     return;

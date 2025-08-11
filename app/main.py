@@ -575,7 +575,9 @@ def calculate_fees():
         elif payment_type == 'raffle':
             if not raffle_quantity or raffle_quantity <= 0:
                 return jsonify({'error': 'Invalid raffle ticket quantity'}), 400
-            base_amount = int(raffle_quantity * RAFFLE_PRICE_PER_TICKET)  # 80 cents per ticket
+            if not amount or amount <= 0:
+                return jsonify({'error': 'Invalid raffle package amount'}), 400
+            base_amount = int(amount * 100)  # Convert package price to cents
         else:
             return jsonify({'error': 'Invalid payment type'}), 400
         
@@ -625,7 +627,7 @@ def create_payment_intent():
                 description += f" + ${additional_donation:.2f} additional donation"
                 
         elif payment_type == 'raffle':
-            base_amount = int(raffle_quantity * RAFFLE_PRICE_PER_TICKET)  # 80 cents per ticket
+            base_amount = int(amount)  # Amount is already in cents from frontend
             description = f"Raffle tickets purchase from {payer_name} - {raffle_quantity} tickets"
         else:
             base_amount = amount
