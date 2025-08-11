@@ -137,6 +137,29 @@ def before_request():
     if redirect_response:
         return redirect_response
 
+@app.after_request
+def after_request(response):
+    """Add security headers including Content Security Policy"""
+    # Content Security Policy to prevent mixed content and upgrade insecure requests
+    csp = (
+        "default-src 'self' https:; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' https://cdn.jsdelivr.net; "
+        "connect-src 'self' https://api.stripe.com; "
+        "upgrade-insecure-requests"
+    )
+    response.headers['Content-Security-Policy'] = csp
+    
+    # Additional security headers
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    return response
+
 def get_gmail_credentials():
     """Get valid Gmail credentials using OAuth2"""
     if not all([GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN]):
