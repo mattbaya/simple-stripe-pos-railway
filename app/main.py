@@ -126,8 +126,12 @@ def log_transaction(payment_intent_id, payer_name, payer_email, amount, payment_
 @app.before_request
 def before_request():
     """Handle domain redirects before processing requests"""
-    # Skip domain redirects for Railway deployment
-    if 'railway.app' in request.host:
+    # Skip ALL domain redirects for Railway deployment - Railway handles HTTPS and routing
+    # Check for Railway headers or railway.app domains
+    if ('railway.app' in request.host or 
+        request.headers.get('X-Forwarded-Proto') or 
+        request.headers.get('X-Forwarded-For') or
+        os.getenv('RAILWAY_ENVIRONMENT')):
         return None
     redirect_response = check_domain_redirect()
     if redirect_response:
