@@ -486,7 +486,22 @@ This payment was processed through Stripe Terminal at your community event.
 {ORGANIZATION_NAME} POS System
     """
     
-    return send_email(NOTIFICATION_EMAIL, subject, body)
+    # Send to multiple notification recipients
+    notification_emails = []
+    if NOTIFICATION_EMAIL:
+        # Split by comma and clean whitespace
+        notification_emails = [email.strip() for email in NOTIFICATION_EMAIL.split(',')]
+    
+    # Send email to each recipient
+    success_count = 0
+    for email in notification_emails:
+        if email:  # Skip empty emails
+            success = send_email(email, subject, body)
+            if success:
+                success_count += 1
+            logger.info(f"Notification email to {email}: {'sent' if success else 'failed'}")
+    
+    return success_count > 0  # Return True if at least one email was sent successfully
 
 @app.route('/')
 def index():

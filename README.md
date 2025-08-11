@@ -26,7 +26,7 @@ Perfect for organizations that use their POS system **several times per year**:
 - **Professional HTML email receipts** sent to donors with embedded letterhead using Gmail API with OAuth2
 - **Separate raffle receipts**: Non-tax-deductible confirmations for raffle purchases with good luck messaging
 - **Tax-compliant receipt format** with 501(c)(3) information and proper documentation
-- **Email notifications** sent to your configured organization email
+- **Email notifications** sent to your configured organization email(s) - supports multiple recipients
 - **Professional success modal** with organization logo and animated confirmation
 - **Clean form experience**: All fields reset when switching between payment types
 - **Automatic reader discovery**: Displays connected terminal status on page load
@@ -58,7 +58,7 @@ STRIPE_LOCATION_ID=tml_your_location_id
 ORGANIZATION_NAME=Your Community Organization
 ORGANIZATION_WEBSITE=https://yourwebsite.org
 FROM_EMAIL=contact@yourdomain.org
-NOTIFICATION_EMAIL=notifications@yourdomain.org
+NOTIFICATION_EMAIL=notifications@yourdomain.org,treasurer@yourdomain.org  # Comma-separated for multiple
 
 # Membership Pricing (in cents)
 INDIVIDUAL_MEMBERSHIP_AMOUNT=3500  # $35.00

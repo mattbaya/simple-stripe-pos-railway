@@ -46,7 +46,7 @@ The application requires these environment variables:
 - `RAFFLE_ENABLED` - Enable/disable raffle ticket sales (true/false, default: false)
 - `ORGANIZATION_NAME/LOGO/WEBSITE` - Branding configuration
 - `DOMAIN_NAME` - Primary domain (pos.yourdomain.org)
-- `NOTIFICATION_EMAIL` - Organization notification recipient
+- `NOTIFICATION_EMAIL` - Organization notification recipients (comma-separated for multiple)
 - `GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN` - OAuth2 credentials
 - `FROM_EMAIL` - Sender email address
 
